@@ -16,8 +16,10 @@ import Data.Profunctor (class Profunctor)
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Closed (class Closed)
 import Data.Profunctor.Cochoice (class Cochoice)
+import Data.Profunctor.Monoidal (class Monoidal, class Semigroupal)
 import Data.Profunctor.Strong (class Strong)
 import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 
 -- | `Star` turns a `Functor` into a `Profunctor`.
 -- |
@@ -79,6 +81,12 @@ instance choiceStar :: Applicative f => Choice (Star f) where
 instance cochoiceStar :: MonadZero f => Cochoice (Star f) where
   unleft  (Star f) = Star $ \a -> (=<<) (either pure (const empty)) $ f (Left a)
   unright (Star f) = Star $ \a -> (=<<) (either (const empty) pure) $ f (Right a)
+
+instance semigroupalStar :: Apply f => Semigroupal Tuple Tuple (Star f) where
+  zip (Star f /\ Star g) = Star $ \(a /\ b) -> (/\) <$> f a <*> g b
+
+instance monoidalStar :: Applicative f => Monoidal Tuple Tuple Unit Unit (Star f) where
+  unit = const $ Star $ pure
 
 instance closedStar :: Distributive f => Closed (Star f) where
   closed (Star f) = Star \g -> distribute (f <<< g)
