@@ -2,13 +2,17 @@ module Data.Profunctor.Joker where
 
 import Prelude
 
-import Control.Alternative (empty)
 import Control.MonadPlus (class MonadZero)
 import Data.Either (Either(..), either)
+import Control.Alt (class Alt, (<|>))
+import Control.Alternative (class Alternative, empty)
 import Data.Newtype (class Newtype, un)
 import Data.Profunctor (class Profunctor)
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Cochoice (class Cochoice)
+import Data.Profunctor.Monoidal (class Monoidal, class Semigroupal, class Unital)
+import Data.Tuple (Tuple)
+import Data.Tuple.Nested ((/\))
 
 -- | Makes a trivial `Profunctor` for a covariant `Functor`.
 newtype Joker f a b = Joker (f b)
@@ -45,6 +49,29 @@ instance cochoiceJoker :: MonadZero f => Cochoice (Joker f)
   where
   unleft  (Joker fa) = Joker $ fa >>= either pure (const empty)
   unright (Joker fb) = Joker $ fb >>= either (const empty) pure
+
+instance ttSemigroupalJoker :: Apply f => Semigroupal (->) Tuple Tuple Tuple (Joker f) where
+  pzip (Joker f /\ Joker g) = Joker $ (/\) <$> f <*> g
+
+instance ttUnitalJoker :: Applicative f => Unital (->) Unit Unit Unit (Joker f) where
+  punit = Joker <<< pure
+
+instance ttMonoidalJoker :: Applicative f => Monoidal (->) Tuple Unit Tuple Unit Tuple Unit (Joker f)
+
+instance etSemigroupalJoker :: Alt f => Semigroupal (->) Either Either Tuple (Joker f) where
+  pzip (Joker f /\ Joker g) = Joker $ (Left <$> f) <|> (Right <$> g)
+
+instance etUnitalJoker :: Alternative f => Unital (->) Void Void Unit (Joker f) where
+  punit = const $ Joker $ empty
+
+instance etMonoidalJoker :: Alternative f => Monoidal (->) Either Void Either Void Tuple Unit (Joker f)
+
+instance eeSemigroupalJoker :: Functor f => Semigroupal (->) Either Either Either (Joker f) where
+  pzip (Left (Joker f)) = Joker $ map Left f
+  pzip (Right (Joker f)) = Joker $ map Right f
+
+instance eeUnitalJoker :: Functor f => Unital (->) Void Void Void (Joker f) where
+  punit = absurd
 
 hoistJoker :: forall f g a b. (f ~> g) -> Joker f a b -> Joker g a b
 hoistJoker f (Joker a) = Joker (f a)
