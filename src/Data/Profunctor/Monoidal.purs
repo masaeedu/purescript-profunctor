@@ -5,7 +5,7 @@ import Prelude
 import Data.Bifunctor (class Bifunctor)
 import Data.Either (Either(..), either)
 import Data.Profunctor (class Profunctor)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..), curry, fst, snd)
 import Data.Tuple.Nested ((/\))
 
 type Iso p a b = { fwd :: p a b, bwd :: p b a }
@@ -47,6 +47,11 @@ class (Associative l c, Associative r c, Profunctor p) <= Semigroupal c l r o p
   where
   pzip :: forall t u v w.
     c (o (p t u) (p v w)) (p (l t v) (r u w))
+
+pzipInfix :: forall l r p a b c d. Semigroupal (->) l r Tuple p => p a b -> p c d -> p (l a c) (r b d)
+pzipInfix = curry pzip
+
+infixr 5 pzipInfix as :&:
 
 class Profunctor p <= Unital c l r o p
   where
