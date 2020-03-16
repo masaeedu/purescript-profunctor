@@ -4,7 +4,7 @@ import Control.Category.Tensor (class Associative)
 import Data.Profunctor (class Profunctor)
 import Data.Tuple (Tuple, curry)
 
-class (Associative l c, Associative r c, Profunctor p) <= Semigroupal c l r o p
+class (Associative l c, Associative r c, Associative o c, Profunctor p) <= Semigroupal c l r o p
   where
   pzip :: forall d e f g.
     c (o (p d e) (p f g)) (p (l d f) (r e g))
