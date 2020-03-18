@@ -73,5 +73,7 @@ instance eeSemigroupalJoker :: Functor f => Semigroupal (->) Either Either Eithe
 instance eeUnitalJoker :: Functor f => Unital (->) Void Void Void (Joker f) where
   punit = absurd
 
+instance eeMonoidalJoker :: Functor f => Monoidal (->) Either Void Either Void Either Void (Joker f)
+
 hoistJoker :: forall f g a b. (f ~> g) -> Joker f a b -> Joker g a b
 hoistJoker f (Joker a) = Joker (f a)

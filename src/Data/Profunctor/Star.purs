@@ -102,6 +102,8 @@ instance eeSemigroupalStar :: Alternative f => Semigroupal (->) Either Either Ei
 instance eeUnitalStar :: Alternative f => Unital (->) Void Void Void (Star f) where
   punit = absurd
 
+instance eeMonoidalStar :: Alternative f => Monoidal (->) Either Void Either Void Either Void (Star f)
+
 instance closedStar :: Distributive f => Closed (Star f) where
   closed (Star f) = Star \g -> distribute (f <<< g)
 
