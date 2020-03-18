@@ -1,6 +1,6 @@
 module Data.Profunctor.Monoidal where
 
-import Control.Category.Tensor (class Associative)
+import Control.Category.Tensor (class Associative, class Tensor)
 import Data.Profunctor (class Profunctor)
 import Data.Tuple (Tuple, curry)
 
@@ -18,4 +18,4 @@ class Profunctor p <= Unital c l r o p
   where
   punit :: c o (p l r)
 
-class (Semigroupal c l r o p, Unital c il ir io p) <= Monoidal c l il r ir o io p
+class (Tensor l il c, Tensor r ir c, Tensor o io c, Semigroupal c l r o p, Unital c il ir io p) <= Monoidal c l il r ir o io p
