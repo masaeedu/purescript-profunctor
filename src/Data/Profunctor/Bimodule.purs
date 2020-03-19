@@ -3,12 +3,12 @@ module Data.Profunctor.Bimodule where
 import Control.Category.Tensor (class Associative)
 import Data.Profunctor (class Profunctor)
 
-class (Associative t (->), Profunctor p) <= LeftModule t p
+class (Associative l c, Associative r c, Profunctor p) <= LeftModule c l r p
   where
-  lstrength :: forall a b x. p a b -> p (t a x) (t b x)
+  lstrength :: forall a b x. c (p a b) (p (l a x) (r b x))
 
-class (Associative t (->), Profunctor p) <= RightModule t p
+class (Associative l c, Associative r c, Profunctor p) <= RightModule c l r p
   where
-  rstrength :: forall a b x. p a b -> p (t x a) (t x b)
+  rstrength :: forall a b x. c (p a b) (p (l x a) (r x b))
 
-class (LeftModule l p, RightModule r p) <= Bimodule l r p
+class (LeftModule c l r p, RightModule c l r p) <= Bimodule c l r p
