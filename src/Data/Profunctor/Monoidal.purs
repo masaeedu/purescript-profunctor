@@ -3,16 +3,22 @@ module Data.Profunctor.Monoidal where
 import Prelude
 
 import Control.Category.Tensor (class Associative, class Tensor)
-import Data.Either (Either)
+import Data.Either (Either(..), either)
 import Data.Either.Nested (type (\/))
 import Data.Profunctor (class Profunctor, dimap, lcmap, rmap)
 import Data.Tuple (Tuple, curry)
-import Data.Tuple.Nested (type (/\))
+import Data.Tuple.Nested (type (/\), (/\))
 
 class (Associative l c, Associative r c, Associative o c, Profunctor p) <= Semigroupal c l r o p
   where
   pzip :: forall d e f g.
     c (o (p d e) (p f g)) (p (l d f) (r e g))
+
+instance eetSemigroupalFn :: Semigroupal (->) Either Either Tuple (->) where
+  pzip (f /\ g) = either (Left <<< f) (Right <<< g)
+
+instance eetUnitalFn :: Unital (->) Void Void Unit (->) where
+  punit _ = absurd
 
 mux :: forall p a b c d. Semigroupal (->) Tuple Tuple Tuple p => p a b -> p c d -> p (a /\ c) (b /\ d)
 mux = curry pzip
@@ -51,3 +57,5 @@ mono :: forall p. Unital (->) Void Unit Unit p => p Void Unit
 mono = punit unit
 
 class (Tensor l il c, Tensor r ir c, Tensor o io c, Semigroupal c l r o p, Unital c il ir io p) <= Monoidal c l il r ir o io p
+
+instance eetMonoidalFn :: Monoidal (->) Either Void Either Void Tuple Unit (->)
