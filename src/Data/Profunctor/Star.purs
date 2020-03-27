@@ -9,6 +9,7 @@ import Control.MonadZero (class MonadZero)
 import Control.Plus (class Plus, empty)
 import Data.Distributive (class Distributive, distribute, collect)
 import Data.Either (Either(..), either)
+import Data.Either as Either
 import Data.Functor.Invariant (class Invariant, imap)
 import Data.Newtype (class Newtype)
 import Data.Profunctor (class Profunctor)
@@ -81,28 +82,38 @@ instance cochoiceStar :: MonadZero f => Cochoice (Star f) where
   unleft  (Star f) = Star $ \a -> (=<<) (either pure (const empty)) $ f (Left a)
   unright (Star f) = Star $ \a -> (=<<) (either (const empty) pure) $ f (Right a)
 
-instance ttSemigroupalStar :: Apply f => Semigroupal (->) Tuple Tuple Tuple (Star f) where
+instance tttSemigroupalStar :: Apply f => Semigroupal (->) Tuple Tuple Tuple (Star f) where
   pzip (Star f /\ Star g) = Star $ \(a /\ b) -> (/\) <$> f a <*> g b
 
-instance ttUnitalStar :: Applicative f => Unital (->) Unit Unit Unit (Star f) where
+instance tttUnitalStar :: Applicative f => Unital (->) Unit Unit Unit (Star f) where
   punit = const $ Star $ pure
 
-instance ttMonoidalStar :: Applicative f => Monoidal (->) Tuple Unit Tuple Unit Tuple Unit (Star f)
+instance tttMonoidalStar :: Applicative f => Monoidal (->) Tuple Unit Tuple Unit Tuple Unit (Star f)
 
-instance etSemigroupalStar :: Functor f => Semigroupal (->) Either Either Tuple (Star f) where
+instance eetSemigroupalStar :: Functor f => Semigroupal (->) Either Either Tuple (Star f) where
   pzip (Star f /\ Star g) = Star $ either (map Left <<< f) (map Right <<< g)
 
-instance etMonoidalStar :: Functor f => Unital (->) Void Void Unit (Star f) where
+instance eetUnitalStar :: Functor f => Unital (->) Void Void Unit (Star f) where
   punit = const $ Star $ absurd
 
-instance eeSemigroupalStar :: Alternative f => Semigroupal (->) Either Either Either (Star f) where
+instance eetMonoidalStar :: Functor f => Monoidal (->) Either Void Either Void Tuple Unit (Star f)
+
+instance eeeSemigroupalStar :: Plus f => Semigroupal (->) Either Either Either (Star f) where
   pzip (Left (Star f)) = Star $ either (map Left <<< f) (const empty)
   pzip (Right (Star f)) = Star $ either (const empty) (map Right <<< f)
 
-instance eeUnitalStar :: Alternative f => Unital (->) Void Void Void (Star f) where
+instance eeeUnitalStar :: Functor f => Unital (->) Void Void Void (Star f) where
   punit = absurd
 
-instance eeMonoidalStar :: Alternative f => Monoidal (->) Either Void Either Void Either Void (Star f)
+instance eeeMonoidalStar :: Plus f => Monoidal (->) Either Void Either Void Either Void (Star f)
+
+instance tetSemigroupalStar :: Alt f => Semigroupal (->) Tuple Either Tuple (Star f) where
+  pzip (Star f /\ Star g) = Star \(Tuple a c) -> Either.choose (f a) (g c)
+
+instance tetUnitalStar :: Plus f => Unital (->) Unit Void Unit (Star f) where
+  punit _ = Star $ const empty
+
+instance tetMonoidalStar :: Plus f => Monoidal (->) Tuple Unit Either Void Tuple Unit (Star f)
 
 instance closedStar :: Distributive f => Closed (Star f) where
   closed (Star f) = Star \g -> distribute (f <<< g)
